@@ -1,2 +1,9 @@
 *.pyc
 output/
+__pycache__/
+trained*/
+*.sw*
+*.pdf
+*.aux
+*.log
+*.out
