@@ -2,8 +2,11 @@ import datasets
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, \
     AutoModelForQuestionAnswering, Trainer, TrainingArguments, HfArgumentParser
 from helpers import prepare_dataset_nli, prepare_train_dataset_qa, \
-    prepare_validation_dataset_qa, QuestionAnsweringTrainer, compute_accuracy
+    prepare_validation_dataset_qa, QuestionAnsweringTrainer, compute_accuracy, \
+    print_example, lens, plot_lengths, apply_frequency
 import os
+import random
+import math
 import json
 
 NUM_PREPROCESSING_WORKERS = 2
@@ -66,6 +69,7 @@ def main():
         eval_split = 'validation_matched' if dataset_id == ('glue', 'mnli') else 'validation'
         # Load the raw data
         dataset = datasets.load_dataset(*dataset_id)
+
     
     # NLI models need to have the output label count specified (label 0 is "entailed", 1 is "neutral", and 2 is "contradiction")
     task_kwargs = {'num_labels': 3} if args.task == 'nli' else {}
@@ -99,6 +103,11 @@ def main():
     train_dataset_featurized = None
     eval_dataset_featurized = None
     if training_args.do_train:
+        print(dataset['train'])
+        # dataset['train'] = apply_frequency(dataset['train'], lambda l: math.ceil(l / 100))
+        dataset['train'] = apply_frequency(dataset['train'], lambda l: 10 if l > 200 else 1 if random.random() < 0.1 else 0)
+        print(dataset['train'])
+        plot_lengths(dataset['train'])
         train_dataset = dataset['train']
         if args.max_train_samples:
             train_dataset = train_dataset.select(range(args.max_train_samples))
@@ -187,6 +196,8 @@ def main():
             if args.task == 'qa':
                 predictions_by_id = {pred['id']: pred['prediction_text'] for pred in eval_predictions.predictions}
                 for example in eval_dataset:
+                    if example['id'] not in predictions_by_id:
+                      continue
                     example_with_prediction = dict(example)
                     example_with_prediction['predicted_answer'] = predictions_by_id[example['id']]
                     f.write(json.dumps(example_with_prediction))

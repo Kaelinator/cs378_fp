@@ -5,6 +5,9 @@ from transformers import Trainer, EvalPrediction
 from transformers.trainer_utils import PredictionOutput
 from typing import Tuple
 from tqdm.auto import tqdm
+import matplotlib.pyplot as plt
+import datasets
+import math
 
 QA_MAX_ANSWER_LENGTH = 30
 
@@ -156,6 +159,7 @@ def prepare_validation_dataset_qa(examples, tokenizer):
     return tokenized_examples
 
 
+
 # This function uses start and end position scores predicted by a question answering model to
 # select and extract the predicted answer span from the context.
 # Adapted from https://github.com/huggingface/transformers/blob/master/examples/pytorch/question-answering/utils_qa.py
@@ -212,6 +216,8 @@ def postprocess_qa_predictions(examples,
                             or end_index >= len(offset_mapping)
                             or offset_mapping[start_index] is None
                             or offset_mapping[end_index] is None
+                            or len(offset_mapping[start_index]) == 0
+                            or len(offset_mapping[end_index]) == 0
                     ):
                         continue
                     # Don't consider answers with a length that is either < 0 or > max_answer_length.
@@ -250,7 +256,6 @@ def postprocess_qa_predictions(examples,
         all_predictions[example["id"]] = predictions[0]["text"]
     return all_predictions
 
-
 # Adapted from https://github.com/huggingface/transformers/blob/master/examples/pytorch/question-answering/trainer_qa.py
 class QuestionAnsweringTrainer(Trainer):
     def __init__(self, *args, eval_examples=None, **kwargs):
@@ -267,6 +272,7 @@ class QuestionAnsweringTrainer(Trainer):
         eval_dataloader = self.get_eval_dataloader(eval_dataset)
         eval_examples = self.eval_examples if eval_examples is None else eval_examples
 
+        print('ignore_keys', ignore_keys)
         # Temporarily disable metric computation, we will do it in the loop here.
         compute_metrics = self.compute_metrics
         self.compute_metrics = None
@@ -284,31 +290,316 @@ class QuestionAnsweringTrainer(Trainer):
             self.compute_metrics = compute_metrics
 
         if self.compute_metrics is not None:
+            
+            example_id_to_index = {k: i for i, k in enumerate(eval_examples["id"])}
+            # s_ids = [e['id'] for e in sorted(eval_examples, key=lambda t: t[0]['context'].count(" ") + 1)]
+            eval_examples_0 = eval_examples.filter(lambda e: 0 < e['context'].count(" ") + 1 < 100)
+            eval_examples_100 = eval_examples.filter(lambda e: 100 <= e['context'].count(" ") + 1 < 200)
+            eval_examples_200 = eval_examples.filter(lambda e: 200 <= e['context'].count(" ") + 1 < 300)
+            eval_examples_300 = eval_examples.filter(lambda e: 300 <= e['context'].count(" ") + 1 < 400)
+            eval_examples_400 = eval_examples.filter(lambda e: 400 <= e['context'].count(" ") + 1 < 500)
+            eval_examples_500 = eval_examples.filter(lambda e: 500 <= e['context'].count(" ") + 1 < 600)
+            eval_examples_rest = eval_examples.filter(lambda e: 600 <= e['context'].count(" ") + 1)
+
+            ids_0 = { e['id'] for e in eval_examples_0 }
+            ids_100 = { e['id'] for e in eval_examples_100 }
+            ids_200 = { e['id'] for e in eval_examples_200 }
+            ids_300 = { e['id'] for e in eval_examples_300 }
+            ids_400 = { e['id'] for e in eval_examples_400 }
+            ids_500 = { e['id'] for e in eval_examples_500 }
+            ids_rest = { e['id'] for e in eval_examples_rest }
+
+            is_0 = { example_id_to_index[e['id']] for e in eval_examples_0 }
+            is_100 = { example_id_to_index[e['id']] for e in eval_examples_100 }
+            is_200 = { example_id_to_index[e['id']] for e in eval_examples_200 }
+            is_300 = { example_id_to_index[e['id']] for e in eval_examples_300 }
+            is_400 = { example_id_to_index[e['id']] for e in eval_examples_400 }
+            is_500 = { example_id_to_index[e['id']] for e in eval_examples_500 }
+            is_rest = { example_id_to_index[e['id']] for e in eval_examples_rest }
+
+            eval_dataset_0 = eval_dataset.filter(lambda e: e['example_id'] in ids_0)
+            eval_dataset_100 = eval_dataset.filter(lambda e: e['example_id'] in ids_100)
+            eval_dataset_200 = eval_dataset.filter(lambda e: e['example_id'] in ids_200)
+            eval_dataset_300 = eval_dataset.filter(lambda e: e['example_id'] in ids_300)
+            eval_dataset_400 = eval_dataset.filter(lambda e: e['example_id'] in ids_400)
+            eval_dataset_500 = eval_dataset.filter(lambda e: e['example_id'] in ids_500)
+            eval_dataset_rest = eval_dataset.filter(lambda e: e['example_id'] in ids_rest)
+
+            predictions_0 = [
+              [output.predictions[0][i] for i in range(0, len(output.predictions[0])) if i in is_0],
+              [output.predictions[1][i] for i in range(0, len(output.predictions[0])) if i in is_0]
+            ]
+            predictions_100 = [
+              [output.predictions[0][i] for i in range(0, len(output.predictions[0])) if i in is_100],
+              [output.predictions[1][i] for i in range(0, len(output.predictions[0])) if i in is_100]
+            ]
+            predictions_200 = [
+              [output.predictions[0][i] for i in range(0, len(output.predictions[0])) if i in is_200],
+              [output.predictions[1][i] for i in range(0, len(output.predictions[0])) if i in is_200]
+            ]
+            predictions_300 = [
+              [output.predictions[0][i] for i in range(0, len(output.predictions[0])) if i in is_300],
+              [output.predictions[1][i] for i in range(0, len(output.predictions[0])) if i in is_300]
+            ]
+            predictions_400 = [
+              [output.predictions[0][i] for i in range(0, len(output.predictions[0])) if i in is_400],
+              [output.predictions[1][i] for i in range(0, len(output.predictions[0])) if i in is_400]
+            ]
+            predictions_500 = [
+              [output.predictions[0][i] for i in range(0, len(output.predictions[0])) if i in is_500],
+              [output.predictions[1][i] for i in range(0, len(output.predictions[0])) if i in is_500]
+            ]
+            predictions_rest = [
+              [output.predictions[0][i] for i in range(0, len(output.predictions[0])) if i in is_rest],
+              [output.predictions[1][i] for i in range(0, len(output.predictions[0])) if i in is_rest]
+            ]
+
             # post process the raw predictions to get the final prediction
             # (from start_logits, end_logits to an answer string)
-            eval_preds = postprocess_qa_predictions(eval_examples,
-                                                    eval_dataset,
-                                                    output.predictions)
-            formatted_predictions = [{"id": k, "prediction_text": v}
-                                     for k, v in eval_preds.items()]
-            references = [{"id": ex["id"], "answers": ex['answers']}
-                          for ex in eval_examples]
+            eval_preds_0 = postprocess_qa_predictions(eval_examples_0, eval_dataset_0, predictions_0)
+            eval_preds_100 = postprocess_qa_predictions(eval_examples_100, eval_dataset_100, predictions_100)
+            eval_preds_200 = postprocess_qa_predictions(eval_examples_200, eval_dataset_200, predictions_200)
+            # eval_preds_300 = postprocess_qa_predictions(eval_examples_300, eval_dataset_300, predictions_300)
+            eval_preds_400 = postprocess_qa_predictions(eval_examples_400, eval_dataset_400, predictions_400)
+            eval_preds_500 = postprocess_qa_predictions(eval_examples_500, eval_dataset_500, predictions_500)
+            eval_preds_rest = postprocess_qa_predictions(eval_examples_rest, eval_dataset_rest, predictions_rest)
+
+            formatted_predictions_0 = [{"id": k, "prediction_text": v}
+                                     for k, v in eval_preds_0.items()]
+            references_0 = [{"id": ex["id"], "answers": ex['answers']}
+                          for ex in eval_examples_0]
+            formatted_predictions_100 = [{"id": k, "prediction_text": v}
+                                     for k, v in eval_preds_100.items()]
+            references_100 = [{"id": ex["id"], "answers": ex['answers']}
+                          for ex in eval_examples_100]
+            formatted_predictions_200 = [{"id": k, "prediction_text": v}
+                                     for k, v in eval_preds_200.items()]
+            references_200 = [{"id": ex["id"], "answers": ex['answers']}
+                          for ex in eval_examples_200]
+            formatted_predictions_300 = [{"id": k, "prediction_text": v}
+                                     for k, v in eval_preds_300.items()]
+            references_300 = [{"id": ex["id"], "answers": ex['answers']}
+                          for ex in eval_examples_300]
+            formatted_predictions_400 = [{"id": k, "prediction_text": v}
+                                     for k, v in eval_preds_400.items()]
+            references_400 = [{"id": ex["id"], "answers": ex['answers']}
+                          for ex in eval_examples_400]
+            formatted_predictions_500 = [{"id": k, "prediction_text": v}
+                                     for k, v in eval_preds_500.items()]
+            references_500 = [{"id": ex["id"], "answers": ex['answers']}
+                          for ex in eval_examples_500]
+            formatted_predictions_rest = [{"id": k, "prediction_text": v}
+                                     for k, v in eval_preds_rest.items()]
+            references_rest = [{"id": ex["id"], "answers": ex['answers']}
+                          for ex in eval_examples_rest]
 
             # compute the metrics according to the predictions and references
-            metrics = self.compute_metrics(
-                EvalPrediction(predictions=formatted_predictions,
-                               label_ids=references)
+            metrics_0 = self.compute_metrics(
+                EvalPrediction(predictions=formatted_predictions_0,
+                               label_ids=references_0)
+            )
+            metrics_100 = self.compute_metrics(
+                EvalPrediction(predictions=formatted_predictions_100,
+                               label_ids=references_100)
+            )
+            metrics_200 = self.compute_metrics(
+                EvalPrediction(predictions=formatted_predictions_200,
+                               label_ids=references_200)
+            )
+            metrics_300 = self.compute_metrics(
+                EvalPrediction(predictions=formatted_predictions_300,
+                               label_ids=references_300)
+            )
+            metrics_400 = self.compute_metrics(
+                EvalPrediction(predictions=formatted_predictions_400,
+                               label_ids=references_400)
+            )
+            metrics_500 = self.compute_metrics(
+                EvalPrediction(predictions=formatted_predictions_500,
+                               label_ids=references_500)
+            )
+            metrics_rest = self.compute_metrics(
+                EvalPrediction(predictions=formatted_predictions_rest,
+                               label_ids=references_rest)
             )
 
-            # Prefix all keys with metric_key_prefix + '_'
-            for key in list(metrics.keys()):
-                if not key.startswith(f"{metric_key_prefix}_"):
-                    metrics[f"{metric_key_prefix}_{key}"] = metrics.pop(key)
+
+            # # Prefix all keys with metric_key_prefix + '_'
+            # for key in list(metrics.keys()):
+            #     if not key.startswith(f"{metric_key_prefix}_"):
+            #         metrics[f"{metric_key_prefix}_{key}"] = metrics.pop(key)
 
             self.log(metrics)
         else:
             metrics = {}
 
-        self.control = self.callback_handler.on_evaluate(self.args, self.state,
-                                                         self.control, metrics)
-        return metrics
+        # self.control = self.callback_handler.on_evaluate(self.args, self.state,
+        #                                                  self.control, metrics)
+        return {metrics_0, metrics_100, metrics_200,  metrics_300, metrics_400, metrics_500, metrics_rest}
+
+# Adapted from https://github.com/huggingface/transformers/blob/master/examples/pytorch/question-answering/trainer_qa.py
+# class QuestionAnsweringTrainer(Trainer):
+#     def __init__(self, *args, eval_examples=None, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.eval_examples = eval_examples
+# 
+#     def evaluate(self,
+#                  eval_dataset=None,  # denotes the dataset after mapping
+#                  eval_examples=None,  # denotes the raw dataset
+#                  ignore_keys=None,  # keys to be ignored in dataset
+#                  metric_key_prefix: str = "eval"
+#                  ):
+#         eval_dataset = self.eval_dataset if eval_dataset is None else eval_dataset
+#         eval_dataloader = self.get_eval_dataloader(eval_dataset)
+#         eval_examples = self.eval_examples if eval_examples is None else eval_examples
+# 
+#         id_set = { s['id'] for s in eval_examples }
+# 
+#         # Temporarily disable metric computation, we will do it in the loop here.
+#         compute_metrics = self.compute_metrics
+#         self.compute_metrics = None
+#         try:
+#             # compute the raw predictions (start_logits and end_logits)
+#             output = self.evaluation_loop(
+#                 eval_dataloader,
+#                 description="Evaluation",
+#                 # No point gathering the predictions if there are no metrics, otherwise we defer to
+#                 # self.args.prediction_loss_only
+#                 prediction_loss_only=True if compute_metrics is None else None,
+#                 ignore_keys=ignore_keys,
+#             )
+#         finally:
+#             self.compute_metrics = compute_metrics
+# 
+#         if self.compute_metrics is not None:
+#             eval_examples = eval_examples.sort('id')
+#             eval_dataset = eval_dataset.sort('example_id').filter(lambda e: e['example_id'] in id_set)
+#             dataset = {'input_ids': [], 'token_type_ids': [], 'attention_mask': [], 'offset_mapping': [], 'example_id': []}
+#             ids = set()
+#             for i in range(0, len(eval_examples)):
+#                 if eval_dataset[i]['example_id'] in ids:
+#                     continue
+#                 ids.add(eval_dataset[i]['example_id'])
+#                 dataset['input_ids'] += [eval_dataset[i]['input_ids']]
+#                 dataset['token_type_ids'] += [eval_dataset[i]['token_type_ids']]
+#                 dataset['attention_mask'] += [eval_dataset[i]['attention_mask']]
+#                 dataset['offset_mapping'] += [eval_dataset[i]['offset_mapping']]
+#                 dataset['example_id'] += [eval_dataset[i]['example_id']]
+#             print('LENGTH', len(dataset['example_id']), len(eval_examples))
+#             z = zip(eval_examples, datasets.Dataset.from_dict(dataset), output.predictions[0], output.predictions[1])
+#             s = sorted(z, key=lambda t: t[0]['context'].count(" ") + 1)
+#             
+#             total_metrics = []
+#             buckets = 7
+#             for i in range(0, buckets):
+#                 start = math.floor(len(s) / buckets) * i
+#                 end = math.floor(len(s) / buckets) * (i + 1)
+#                 print('Examples', start, 'to', end)
+#                 sorted_examples = { 'id': [], 'title': [], 'context': [], 'question': [], 'answers': [] }
+#                 sorted_dataset = {'input_ids': [], 'token_type_ids': [], 'attention_mask': [], 'offset_mapping': [], 'example_id': []}
+#                 preds_0 = []
+#                 preds_1 = []
+#                 skipped = 0
+#                 for ex, d, p0, p1 in s[start:end]:
+#                     if ex['id'] != d['example_id']:
+#                       skipped += 1
+#                       continue
+#                     sorted_examples['id'] += [ex['id']]
+#                     sorted_examples['title'] += [ex['title']]
+#                     sorted_examples['context'] += [ex['context']]
+#                     sorted_examples['question'] += [ex['question']]
+#                     sorted_examples['answers'] += [ex['answers']]
+#                     sorted_dataset['input_ids'] += [d['input_ids']]
+#                     sorted_dataset['token_type_ids'] += [d['token_type_ids']]
+#                     sorted_dataset['attention_mask'] += [d['attention_mask']]
+#                     sorted_dataset['offset_mapping'] += [d['offset_mapping']]
+#                     sorted_dataset['example_id'] += [d['example_id']]
+#                     preds_0 += [p0]
+#                     preds_1 += [p1]
+#                 print('SKIPPED', skipped)
+#                 eval_examples = datasets.Dataset.from_dict(sorted_examples)
+#                 eval_dataset = datasets.Dataset.from_dict(sorted_dataset)
+#                 preds = [preds_0, preds_1]
+#                 # post process the raw predictions to get the final prediction
+#                 # (from start_logits, end_logits to an answer string)
+#                 eval_preds = postprocess_qa_predictions(eval_examples,
+#                                                         eval_dataset,
+#                                                         preds)
+#                 formatted_predictions = [{"id": k, "prediction_text": v}
+#                                          for k, v in eval_preds.items()]
+#                 references = [{"id": ex["id"], "answers": ex['answers']}
+#                               for ex in eval_examples]
+# 
+#                 # compute the metrics according to the predictions and references
+#                 metrics = self.compute_metrics(
+#                     EvalPrediction(predictions=formatted_predictions,
+#                                    label_ids=references)
+#                 )
+# 
+#                 # Prefix all keys with metric_key_prefix + '_'
+#                 for key in list(metrics.keys()):
+#                     if not key.startswith(f"{metric_key_prefix}_"):
+#                         metrics[f"{metric_key_prefix}_{key}"] = metrics.pop(key)
+# 
+#                 print(metrics)
+#                 total_metrics += [ metrics ]
+#                 self.log(metrics)
+#             else:
+#                 metrics = {}
+# 
+#             self.control = self.callback_handler.on_evaluate(self.args, self.state,
+#                                                              self.control, metrics)
+#         return total_metrics
+
+def count(d, i):
+  result = {}
+  for e in d:
+    c = e[i]
+    if c in result:
+      result[c] += 1
+    else:
+      result[c] = 1
+  return result
+
+def plot_lengths(dataset):
+  # counts = count(dataset.map(lens), 'context_length_word')
+  dataset = dataset.map(lens)
+  l = [ d['context_length_word'] for d in dataset ]
+  fig, ax = plt.subplots()
+  ax.hist(l, bins=[0, 100, 200, 300, 400, 500, 600, 700])
+  ax.set_xlabel('Word count')
+  ax.set_ylabel('Number of examples')
+  ax.set_title('Word count distribution for context in SQuAD')
+  plt.semilogy(base=10)
+  plt.show()
+
+def apply_frequency(dataset, frequency_function):
+  d = dataset.to_dict()
+  i = 0
+  for example in dataset:
+    if i % 876 == 0:
+      print(i)
+    context_word_count = example['context'].count(" ") + 1
+    n = frequency_function(context_word_count)
+    d['id'] = d['id'] + [example['id'] for i in range(n)]
+    d['title'] = d['title'] + [example['title'] for i in range(n)]
+    d['context'] = d['context'] + [example['context'] for i in range(n)]
+    d['question'] = d['question'] + [example['question'] for i in range(n)]
+    d['answers'] = d['answers'] + [example['answers'] for i in range(n)]
+    i += 1
+  return datasets.Dataset.from_dict(d)
+
+  
+def lens(example):
+  return {
+    'question_length_char': len(example['question']),
+    'context_length_char': len(example['context']),
+    'answer_lengths_char': list(map(lambda t : len(t), example['answers']['text'])),
+    'question_length_word': example['question'].count(" ") + 1,
+    'context_length_word': example['context'].count(" ") + 1,
+    'answer_lengths_char': list(map(lambda t : t.count(" ") + 1, example['answers']['text'])),
+  }
+
+def print_example(example):
+  print(example)
+  exit()

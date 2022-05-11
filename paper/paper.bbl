@@ -1,0 +1,110 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.1 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global}
+    \entry{clark2020electra}{article}{}
+      \name{author}{4}{}{%
+        {{hash=fc24d54994dc7c0893aaf6e1ca5fb42b}{%
+           family={Clark},
+           familyi={C\bibinitperiod},
+           given={Kevin},
+           giveni={K\bibinitperiod}}}%
+        {{hash=5fc2dc715fc35ea0dd825a5d84ac0e60}{%
+           family={Luong},
+           familyi={L\bibinitperiod},
+           given={Minh-Thang},
+           giveni={M\bibinithyphendelim T\bibinitperiod}}}%
+        {{hash=c636f146591d51579a8119b777394878}{%
+           family={Le},
+           familyi={L\bibinitperiod},
+           given={Quoc\bibnamedelima V.},
+           giveni={Q\bibinitperiod\bibinitdelim V\bibinitperiod}}}%
+        {{hash=2214edb8305f7ccd7cdc310b3a8ae1b4}{%
+           family={Manning},
+           familyi={M\bibinitperiod},
+           given={Christopher\bibnamedelima D.},
+           giveni={C\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+      }
+      \strng{namehash}{8f29543aaad0d840827aaab943a2e393}
+      \strng{fullhash}{1616e28b53907ac54d37f9dc941586bf}
+      \strng{bibnamehash}{8f29543aaad0d840827aaab943a2e393}
+      \strng{authorbibnamehash}{8f29543aaad0d840827aaab943a2e393}
+      \strng{authornamehash}{8f29543aaad0d840827aaab943a2e393}
+      \strng{authorfullhash}{1616e28b53907ac54d37f9dc941586bf}
+      \field{sortinit}{C}
+      \field{sortinithash}{4c244ceae61406cdc0cc2ce1cb1ff703}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{eprintclass}{cs.CL}
+      \field{eprinttype}{arXiv}
+      \field{title}{ELECTRA: Pre-training Text Encoders as Discriminators Rather Than Generators}
+      \field{year}{2020}
+      \verb{eprint}
+      \verb 2003.10555
+      \endverb
+    \endentry
+    \entry{2016arXiv160605250R}{article}{}
+      \name{author}{4}{}{%
+        {{hash=d928987fcfcc448e0b101168ce910c67}{%
+           family={{Rajpurkar}},
+           familyi={R\bibinitperiod},
+           given={Pranav},
+           giveni={P\bibinitperiod}}}%
+        {{hash=112faefb37293f52cd92c3bb36fcc08b}{%
+           family={{Zhang}},
+           familyi={Z\bibinitperiod},
+           given={Jian},
+           giveni={J\bibinitperiod}}}%
+        {{hash=88fd2b39f9d59a48cf8ebf321dab6660}{%
+           family={{Lopyrev}},
+           familyi={L\bibinitperiod},
+           given={Konstantin},
+           giveni={K\bibinitperiod}}}%
+        {{hash=86c032bbc45c3b616f0a1170befc0e82}{%
+           family={{Liang}},
+           familyi={L\bibinitperiod},
+           given={Percy},
+           giveni={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{8364d6ba1b00410c7e5a517f1ddc02bf}
+      \strng{fullhash}{6a9799baaf72b27c5d354bab790952f0}
+      \strng{bibnamehash}{8364d6ba1b00410c7e5a517f1ddc02bf}
+      \strng{authorbibnamehash}{8364d6ba1b00410c7e5a517f1ddc02bf}
+      \strng{authornamehash}{8364d6ba1b00410c7e5a517f1ddc02bf}
+      \strng{authorfullhash}{6a9799baaf72b27c5d354bab790952f0}
+      \field{sortinit}{R}
+      \field{sortinithash}{b9c68a358aea118dfa887b6e902414a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{eid}{arXiv:1606.05250}
+      \field{eprinttype}{arXiv}
+      \field{journaltitle}{arXiv e-prints}
+      \field{title}{{SQuAD: 100,000+ Questions for Machine Comprehension of Text}}
+      \field{year}{2016}
+      \field{pages}{arXiv:1606.05250}
+      \range{pages}{-1}
+      \verb{eprint}
+      \verb 1606.05250
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

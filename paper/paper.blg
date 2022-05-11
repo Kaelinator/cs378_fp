@@ -1,0 +1,17 @@
+[0] Config.pm:304> INFO - This is Biber 2.14 (beta)
+[0] Config.pm:307> INFO - Logfile is 'paper.blg'
+[56] biber:322> INFO - === Tue May 10, 2022, 23:54:59
+[67] Biber.pm:415> INFO - Reading 'paper.bcf'
+[118] Biber.pm:943> INFO - Found 2 citekeys in bib section 0
+[128] Biber.pm:4256> INFO - Processing section 0
+[128] Utils.pm:75> INFO - Globbing data source 'reference.bib'
+[128] Utils.pm:91> INFO - Globbed data source 'reference.bib' to reference.bib
+[136] Biber.pm:4455> INFO - Looking for bibtex format file 'reference.bib' for section 0
+[137] bibtex.pm:1653> INFO - LaTeX decoding ...
+[140] bibtex.pm:1471> INFO - Found BibTeX data source 'reference.bib'
+[170] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[170] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[170] Biber.pm:4084> INFO - Sorting list 'nty/global//global/global' of type 'entry' with template 'nty' and locale 'en-US'
+[170] Biber.pm:4090> INFO - No sort tailoring available for locale 'en-US'
+[172] bbl.pm:652> INFO - Writing 'paper.bbl' with encoding 'UTF-8'
+[174] bbl.pm:755> INFO - Output to paper.bbl

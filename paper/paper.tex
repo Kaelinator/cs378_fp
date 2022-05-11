@@ -3,6 +3,10 @@
 \usepackage[top=1in,bottom=1in,left=1.2in,right=1.2in]{geometry}
 \usepackage{hyperref}
 \usepackage[small]{titlesec}
+\usepackage{graphicx}
+\usepackage{biblatex}
+\usepackage{amsmath}
+\addbibresource{reference.bib}
 
 \newcommand{\todo}[1]{\textcolor{cyan}{\textbf{TODO:} #1}}
 
@@ -16,57 +20,207 @@
 
 
 \begin{abstract}
-  Many models have been created to solve the question answerting task for short
-  to medium lengthed examples. 
+  Many models have been created to solve the question answerting task, but have focused on short
+  to medium lengthed examples, where an example's length is roughly the number of words in the context.
+  In this paper, I explore what performance gains can be made specifically
+  for longer lengthed examples at the detriment to performance on the shorter lengthed examples.
+  An ELECTRA-small model was trained on the SQuADv1.1 dataset and the results were compared to
+  a modified version of the SQuADv1.1 dataset in which longer lengthed examples appeared more
+  frequently.
 \end{abstract}
 
-\section{Introduction (5pt)}
+\section{Introduction}
 
-\todo{This section should include three paragraphs. The first paragraph is to briefly describe task and data. The second paragraph should describe the results of your analysis, and the third paragraph describing your fix and main experimental take aways. }
+The task featured is the question answering task, but instead of a single EM and F1 score, the average EM
+and F1 scores are computed across the different lengthed examples of the evaluation set.
+This will allow for analysis of the performance of the ELECTRA-small model when trained on the modified
+dataset. 
 
+This expirement shows that a model can sacrifice performance on particular example lengths to achieve
+performance on different example lengths, and that this is done without any modifications to the
+ELECTRA model, but only modifications in the dataset.
 
-\section{Task/Dataset/Model Description (15pt)}
+The fix for increased performance in this task was one in which the data was changed. Given the
+SQuADv1.1 dataset, each example was duplicated $n$ times, where $n$ is a function of the number of
+words in the example's context. Along with this, the number of epochs trained was decreased to
+retain roughly the same number of examples trained on for each test.
 
-\todo{Describe the task/dataset/model you are working on. Clearly define your task with mathematical notations. Describe your learning algorithm. You must formally specify the loss function, stopping criteria, training data, etc used for the model you are analyzing in the next section. Remember, every notation you use must be defined.}
+\section{Descriptions}
 
-\section{Performance Analysis (25pt)}
+\subsection{Task Description}
 
-\todo{Describe clearly how you conducted your analysis of the model performance, and report the outcomes. You should provide (1) some examples of both \textbf{specific errors/behavior} from the model and (2) analysis or discussion of \textbf{the general class of mistakes the model makes}. For characterizing the general class, try to come up with rules that can identify a set of challenging examples (e.g., ``examples containing \emph{not}'') and try to visualize in charts, graphs, or tables what you believe to be relevant statistics about the data. For example, how frequent is the class of examples where such error pattern apply? This part of the report should be at least one page.}
+The ELECTRA-small model's pretraining task includes the use of a generator trained
+jointly with the ELECTRA discriminator. The generator is trained with maximum likelihood
+and after wich, is thrown out, leaving the ELECTRA discriminator for downstream tasks such
+as Question answering.
 
+Question answering is a task in which a model is given a context, a passage which provides
+information that may or may not be useful in answering a given question. A gold label is in
+the form of a pair of indicies--the character at which the answer begins within context and
+the character at which the answer ends. That is, the answer is simply a substring within the
+context.
 
-\section{Describing Your Fix (20pt)}
+\subsection{Dataset Description}
 
+SQuADv1.1 is a dataset for reading comprehension via question answering created using Wikipedia
+articles. It was collected from a group of crowd workers who created questions given a Wikipedia
+article, where the answer is embedded within the article as a segment of text. 
+\cite{2016arXiv160605250R}
 
+\subsection{Model Description}
 
-\todo{You should describe modifications you have made to improve performances. We will evaluate based on how reasonable is your fix  -- if your fix and motivation does not link, your modificiation is unreasonable. For example, perhaps you tried to modify neural network training in a way that is totally unconnected to your stated goal, or your modification was erroneous. Describe the baseline model to be compared to your approach as well here. Again, clearly define all notations. Someone who is reading your report (with reasonable background, e.g., your classmates in this course) should have a reasonable idea how to implement it themselves. Describe hyperparameters, including how they are selected, if you have hyperparameters involved. 
-}
+No modifications have been made to the downstream ELECTRA model. The discriminator's
+pretraining task consisted of distinguishing between actual text and text that was guessed by
+generator. $D$ is defined as follows:
 
-\section{Evaluating Your Fix (25pt)}
-\todo{
-Your writeup should address how effective is your fix, how broadly applicable is your fix, etc. Providing a single number (overall accuracy) is necessary but not sufficient here. For example, if your change made the model better on challenging NLI examples, you could try to quantify that on one or more slices of the data, give examples of predictions that are fixed, or even use model interpretation techniques to try to support claims about how your improved model is doing its ``reasoning.'' (You can look at the papers listed above to get a sense of how to do such fine-grained evaluation).  You should report results from a baseline approach (your initial trained model) as well as your ``best'' method. If doing your own project, baselines such as majority class, random, or a linear classifier are important to see. \textbf{Ablations}: If you tried several things, analyze the contribution from each one. These should be \emph{minimal} changes to the same system; try running things with just one aspect different in order to assess how important that aspect is. This part of the report should be at least one page.}
+\[
+  D(x, t) = sigmoid(w^Th_D(x)_t)
+\]
 
+Where $w$ is a learned weight matrix and $h_D$ is the contextualized vector representation.
 
-% \todo{Describe the data you use, including how many examples are in the training, development, and test sets. Please also provide shallow statistics of your data, with at least the vocabulary size and instruction length. It is best to report all the statistics, including counts, in a table. Please describe how you compute statistics that can be computed in different ways (i.e., vocabulary size). Describe how you pre-process the data, including how you treat casing, tokenization, unknown words, and anything else that you did to the raw data before providing it to your model. If you are using a subset of the data, explain why and discuss tradeoffs (you will also need to back them with experiments).}
+The loss function for the discriminator is as follows:
 
-% \section{Implementation Details (3pt)}
+\begin{equation}
+  \resizebox{0.5\textwidth}{!}{$L(x, \theta) = E(\sum_{t=1}^{n} -1(x_t^{corrupt} = x_t) log (D(x^{corrupt}, t))-1(x_t^{corrupt} \neq x_t) log(1 - D(x^{corrupt}, t)))$}
+\end{equation}
 
-% \todo{Briefly describe the implementation details. No need to copy details already specified in the assignment. Include any hyper-parameters the model has. If there are any optimizations that you introduced, this is the place to describe them. Did you have to do any special optimizations to make the method work in reasonable time/memory? Describe it here.}
+Where $x = [x_1, x_2, ... x_n]$ is input and $x_t^{corrupt}$ denotes a masked out input. 
+\cite{clark2020electra}
 
-% \section{}
+\section{Performance Analysis}
 
- \section{Related Work (5pt)}
-\todo{Briefly discuss prior research papers related to your approach. This will likely some papers in the project description document. How is your approach different from existing studies?}
-% \paragraph{Ablations (15pt)}
+Analysis of the model's performance was conducted by calculating the F1 across subsections of the
+evaluation data. The evaluation data was split into seven buckets $\{ b_0, b_1, ... b_6 \}$ according to the number of words
+featured in the example's context, where $b_0$ contains examples with 0-99 words in the context and $b_6$ contains
+examples with 600-699 words in the context. More generally:
 
-% \todo{Please report your ablation studies on the development set. Make sure to ablate each feature set independently to show they contribute to your final result.  If a feature set does not improve performance, please do not include it -- it doesn't help. You can still discuss it, but there is really no point in including it in your final model. Reporting the results must be done in a table, and each result must be discussed in the text.}
+\[
+  b_n = \{x | 100n \leq wc(x_{context}) < 100(n+1) \}
+\]
 
-% \section{Error Analysis (7pt)}
+Where $x \in \text{SQuADv1.1}$ and $wc(c)$ is defined as one more than the number of spaces in c.
 
-% \todo{Qualitative analysis of selected failure examples. Show and discuss error examples from your development set. You must identify certain classes of errors and use the examples to illustrate them. This is often best to show in a table.}
+Figure \ref{fig:perf_table} compares the F1 scores across buckets $\{ b_0, b_1, ... b_6 \}$ of the "BASE" model--the model trained on the default SQuADv1.1 dataset--with
+the "NORMAL" model--the model trained on the SQuADv1.1 dataset with increased frequencies according
+to frequency function $f_{normal}$--with the "AGGRESSIVE" model--the model trained on the SQuADv1.1 dataset with increased frequencies according
+to frequency function $f_{aggressive}$.
 
-\section{Conclusion (5pt)}
-\todo{Brief conclusion summarizing findings from both numerical results and qualitative analysis.}
+See Figure \ref{fig:normal_func} for the definition of $f_{normal}$
+and Figure \ref{fig:aggressive_func} for the definition of $f_{aggressive}$.
 
+\begin{figure}
+\begin{center}
+\begin{tabular}{ |c|c|c|c| }
+ \hline
+ yuh & BASE & NORMAL & AGGRESSIVE \\
+ \hline
+ $b_0$ & 49.25 & 46.09 & 44.34 \\
+ \hline
+ $b_1$ & 62.47 &  &  \\
+ \hline
+ $b_2$ & 74.95 &  &  \\
+ \hline
+ $b_3$ & 57.93 &  &  \\
+ \hline
+ $b_4$ & 41.97 & 42.11 & 46.08 \\
+ \hline
+ $b_5$ & 34.09 &  &  \\
+ \hline
+ $b_6$ & 37.60 &  &  \\
+ \hline
+\end{tabular}
+\end{center}
+  \caption{F1 scores of each model across each example bucket}
+  \label{fig:perf_table}
+\end{figure}
+
+\section{Frequency functions}
+
+The fix that was implemented is strictly changing the training data. It is observed that there are
+orders of magnitude more examples with contexts containing fewer than 200 words than examples with
+contexts containing greater than 200 words. Figure \ref{fig:default_freq} shows the number of examples
+that contain a context of a specified word count in SQuADv1.1. The trend is such that for about
+every 100 words contained in the context, there are 10 times fewer examples in the dataset.
+
+The fix implemented is to normalize these frequencies by duplicating examples that contain greater
+numbers of words in the context. To determine how normalize these frequencies, a function was defined
+such that $n$ is the number of words in a given example's context, then $f(n)$ is the number of times
+that example should appear in the dataset.
+Two different frequency functions were tested, we'll call them
+$f_{normal}$ and $f_{aggressive}$. These two functions are defined as follows:
+
+\begin{figure}
+\[
+  f_{normal}(n) = \left\lceil \frac{n}{100}\right\rceil
+\]
+  \label{fig:normal_func}
+\end{figure}
+
+\begin{figure}
+\[
+  f_{aggressive}(n) = \begin{cases} 
+    0.1 & n \leq 200 \\
+    10 & n > 200 \\
+  \end{cases}
+\]
+  \label{fig:aggressive_func}
+\end{figure}
+
+If $f(n)$ outputs a number less than 1, then that output is used at the probability that this example
+is included. Figure \ref{fig:normal_freq} shows the frequency histogram for $f_{normal}$ and Figure
+\ref{fig:aggressive_freq} shows the frequency histogram for $f_{aggressive}$.
+
+With these frequency functions applied, it is clear that the model will train on more examples with
+longer contexts. Both of the frequency functions applied here resulted in differently sized datasets,
+so the model was trained on one epoch of each. Note that this differs from the number of epochs used
+when training for the default SQuAD1.1 dataset, in which 3 epochs were trained.
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{Figure_1.png}
+  \caption{default SQuADv1.1 context word count frequency}
+  \label{fig:default_freq}
+\end{figure}
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{Figure_2-1.png}
+  \caption{SQuADv1.1 context word count frequency with $f_{normal}$ applied}
+  \label{fig:normal_freq}
+\end{figure}
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{Figure_1_aggressive.png}
+  \caption{SQuADv1.1 context word count frequency with $f_{aggressive}$ applied}
+  \label{fig:aggressive_freq}
+\end{figure}
+
+\section{Evaluating My Fix}
+
+This fix is a very feasible way to get easy performance gains for longer inputs.
+
+Creating more data alongside gold labels is costly, difficult, and time consuming, but being
+able to target longer contexts by simply changing the training data's frequency provides
+for a cheap, easy, and quick alternative. 
+
+This fix required no changes in the underlying model whatsoever, but instead built upon an
+already good model, ELECTRA-small, and resulted in performance where it was desired. This means
+that no significant training must be done.
+
+However, as the data shows in Figure \ref{fig:perf_table}, the more the model is trained for
+examples with long contexts, the lower the performance is on examples with short contexts.
+This tradeoff is likely due to the lack of changes in the model itself.
+
+\section{Related Work}
+The most closely related work previously encountered is the use contrast sets in Gardner et al., 2020.
+This paper differs because no examples are hand constructed, designed, nor annotated. Instead, this
+process is simpler, since all that is changed are the frequencies of the data points.
+
+\section{Conclusion}
+This expirement shows that gains of up to 5 points on F1 score can be made on long context examples
+on the question answering task using an ELECTRA-small model by simply varying the frequency of
+examples depending on the number of words in the context.
+
+\printbibliography
 
 \end{document}
 
